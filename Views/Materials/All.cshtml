@@ -1,0 +1,154 @@
+@model IEnumerable<прпгр.MaterialViewModel>
+
+@{
+    ViewData["Title"] = "Все материалы";
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var query = ViewBag.Query as string;
+    var subject = ViewBag.Subject as string;
+    var course = ViewBag.Course as string;
+    var tag = ViewBag.Tag as string;
+    var onlyPremium = (bool)(ViewBag.OnlyPremium ?? false);
+    var minRating = ViewBag.MinRating as int?;
+    var mode = ViewBag.Mode as string ?? "keyword";
+}
+
+<h2 class="mb-4">Все материалы</h2>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <input name="query" class="form-control" placeholder="Поиск по материалам..." value="@query" />
+            </div>
+            <div class="col-md-2">
+                <input name="subject" class="form-control" placeholder="Предмет" value="@subject" />
+            </div>
+            <div class="col-md-2">
+                <input name="course" class="form-control" placeholder="Курс" value="@course" />
+            </div>
+            <div class="col-md-2">
+                <select name="minRating" class="form-select form-control">
+                    <option value="">Рейтинг</option>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <option value="@i" selected="@(minRating == i)">@i+</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-center gap-2">
+                <button class="btn btn-primary" type="submit">Найти</button>
+            </div>
+            <div class="col-12">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="mode" value="keyword" id="modeKeyword" checked="@(mode == "keyword")">
+                        <label class="form-check-label" for="modeKeyword">По ключевым словам</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="mode" value="semantic" id="modeSemantic" checked="@(mode == "semantic")">
+                        <label class="form-check-label" for="modeSemantic">Семантический</label>
+                    </div>
+                    <div class="form-check form-check-inline ms-3">
+                        <input type="checkbox" class="form-check-input" name="onlyPremium" value="true" id="onlyPremium" checked="@onlyPremium" />
+                        <label class="form-check-label" for="onlyPremium">Только премиум</label>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Материалы не найдены.</div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 pb-4">
+        @foreach (var m in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0 card-hover">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title mb-1">
+                            @m.Title
+                            @if (m.IsPremium)
+                            {
+                                <span class="badge-premium ms-2">Премиум</span>
+                            }
+                        </h5>
+
+                        <p class="card-text text-muted mb-1 small">
+                            @m.Subject &bull; @m.Course @(string.IsNullOrEmpty(m.Topic) ? "" : " &bull; " + m.Topic)
+                        </p>
+
+                        @if (m.Tags != null && m.Tags.Any())
+                        {
+                            <div class="mb-2">
+                                @foreach (var t in m.Tags.Take(5))
+                                {
+                                    <span class="badge bg-secondary me-1">@t</span>
+                                }
+                            </div>
+                        }
+
+                        <p class="card-text flex-grow-1 small">
+                            @((!string.IsNullOrEmpty(m.ShortDescription) && m.ShortDescription.Length > 150) ? m.ShortDescription.Substring(0, 150) + "..." : m.ShortDescription)
+                        </p>
+
+                        <div class="star-rating mb-1">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                @(i <= Math.Round(m.AverageRating) ? "★" : "☆")
+                            }
+                            <span class="text-muted ms-1 small">@m.AverageRating.ToString("0.0") (@m.RatingsCount)</span>
+                        </div>
+
+                        <p class="mb-2">
+                            @switch (m.Status)
+                            {
+                                case "Pending":
+                                    @:<span class="badge bg-secondary">На модерации</span>
+                                    break;
+                                case "Approved":
+                                    @:<span class="badge bg-success">Одобрен</span>
+                                    break;
+                                case "Rejected":
+                                    @:<span class="badge bg-warning text-dark">Отклонён</span>
+                                    break;
+                                case "Blocked":
+                                    @:<span class="badge bg-danger">Заблокирован</span>
+                                    break;
+                            }
+                        </p>
+
+                        <a asp-action="Details" asp-route-id="@m.Id" class="btn btn-outline-primary w-100 mt-auto">
+                            Открыть
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <nav aria-label="Навигация по страницам" class="mt-3">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("All", new { query, subject, course, tag, onlyPremium, minRating, mode, page = currentPage - 1 })">Назад</a>
+                </li>
+                @for (int p = 1; p <= totalPages; p++)
+                {
+                    <li class="page-item @(p == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("All", new { query, subject, course, tag, onlyPremium, minRating, mode, page = p })">@p</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("All", new { query, subject, course, tag, onlyPremium, minRating, mode, page = currentPage + 1 })">Вперёд</a>
+                </li>
+            </ul>
+        </nav>
+    }
+}

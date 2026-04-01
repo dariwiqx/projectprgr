@@ -1,0 +1,52 @@
+@model IEnumerable<прпгр.Models.LMSAccountLink>
+
+@{
+    ViewData["Title"] = "LMS-интеграция";
+}
+
+<h2 class="mb-4">Мои LMS-аккаунты</h2>
+
+@if (TempData["LmsSuccess"] != null)
+{
+    <div class="alert alert-success">@TempData["LmsSuccess"]</div>
+}
+@if (TempData["LmsError"] != null)
+{
+    <div class="alert alert-danger">@TempData["LmsError"]</div>
+}
+
+<a asp-action="Link" class="btn btn-primary mb-4">Привязать LMS-аккаунт</a>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">У вас нет привязанных LMS-аккаунтов. Привяжите аккаунт Moodle или Blackboard для публикации материалов.</div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @foreach (var link in Model)
+        {
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            @(link.LmsType == "Moodle" ? "&#x1F393;" : "&#x1F4DA;") @link.LmsType
+                        </h5>
+                        <p class="text-muted small mb-1">@link.LmsUrl</p>
+                        <p class="text-muted small">Подключено: @link.CreatedAt.ToString("dd.MM.yyyy")</p>
+
+                        <div class="d-flex gap-2">
+                            <a asp-action="Courses" asp-route-linkId="@link.Id" class="btn btn-outline-primary btn-sm">
+                                Курсы
+                            </a>
+                            <form asp-action="Unlink" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@link.Id" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Отвязать</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

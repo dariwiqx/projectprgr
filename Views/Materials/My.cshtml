@@ -1,0 +1,103 @@
+@model IEnumerable<прпгр.MyMaterialViewModel>
+
+@{
+    ViewData["Title"] = "Мои материалы";
+
+    var total = Model.Count();
+    var pending = Model.Count(m => m.StatusText == "Pending");
+    var approved = Model.Count(m => m.StatusText == "Approved");
+    var rejected = Model.Count(m => m.StatusText == "Rejected");
+    var blocked = Model.Count(m => m.StatusText == "Blocked");
+
+    int Percent(int part) => total == 0 ? 0 : (int)(part * 100.0 / total);
+}
+
+<h2 class="mb-4">Мои материалы</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Вы ещё не загрузили материалы.</div>
+    <a asp-action="Create" class="btn btn-primary">Загрузить материал</a>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-2">Статусы моих материалов</h5>
+            <div class="mb-2 small text-muted">
+                Всего: @total, ожидают: @pending, одобрены: @approved, отклонены: @rejected, заблокированы: @blocked
+            </div>
+
+            <div class="progress" style="height:20px; background:rgba(255,255,255,0.1);">
+                <div class="progress-bar bg-secondary" style="width:@Percent(pending)%">@(Percent(pending) > 5 ? $"Pending ({Percent(pending)}%)" : "")</div>
+                <div class="progress-bar bg-success" style="width:@Percent(approved)%">@(Percent(approved) > 5 ? $"Approved ({Percent(approved)}%)" : "")</div>
+                <div class="progress-bar bg-warning text-dark" style="width:@Percent(rejected)%">@(Percent(rejected) > 5 ? $"Rejected ({Percent(rejected)}%)" : "")</div>
+                <div class="progress-bar bg-danger" style="width:@Percent(blocked)%">@(Percent(blocked) > 5 ? $"Blocked ({Percent(blocked)}%)" : "")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-dark-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Предмет</th>
+                            <th>Курс</th>
+                            <th>Статус</th>
+                            <th style="width:25%;">Описание</th>
+                            <th>Рейтинг</th>
+                            <th>Создан</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in Model)
+                        {
+                            var badgeClass = m.StatusText switch
+                            {
+                                "Approved" => "bg-success",
+                                "Pending" => "bg-secondary",
+                                "Rejected" => "bg-warning text-dark",
+                                "Blocked" => "bg-danger",
+                                _ => "bg-secondary"
+                            };
+
+                            <tr>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@m.Id" class="text-decoration-none">@m.Title</a>
+                                </td>
+                                <td>@m.Subject</td>
+                                <td>@m.Course</td>
+                                <td><span class="badge @badgeClass">@m.StatusText</span></td>
+                                <td class="small" style="white-space:normal; word-wrap:break-word;">@m.ShortDescription</td>
+                                <td>
+                                    <span class="star-rating small">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            @(i <= Math.Round(m.AverageRating) ? "★" : "☆")
+                                        }
+                                    </span>
+                                    <span class="text-muted small">(@m.RatingsCount)</span>
+                                </td>
+                                <td class="small">@m.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</td>
+                                <td>
+                                    @if (m.StatusText == "Pending" || m.StatusText == "Rejected")
+                                    {
+                                        <form asp-action="Delete" asp-route-id="@m.Id" method="post" style="display:inline;"
+                                              onsubmit="return confirm('Удалить этот материал?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

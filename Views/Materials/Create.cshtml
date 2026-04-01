@@ -1,0 +1,77 @@
+@model прпгр.Models.CreateMaterialViewModel
+
+@{
+    ViewData["Title"] = "Загрузить материал";
+}
+
+<h2 class="mb-4">Загрузить материал</h2>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card auth-card">
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">Название</label>
+                        <input asp-for="Title" class="form-control" placeholder="Название материала" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Описание</label>
+                        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Описание материала..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Subject" class="form-label">Предмет</label>
+                            <input asp-for="Subject" class="form-control" placeholder="Напр.: Математика" />
+                            <span asp-validation-for="Subject" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Course" class="form-label">Курс</label>
+                            <input asp-for="Course" class="form-control" placeholder="Напр.: 1 курс" />
+                            <span asp-validation-for="Course" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Topic" class="form-label">Тема</label>
+                            <input asp-for="Topic" class="form-control" placeholder="Напр.: Интегралы" />
+                            <span asp-validation-for="Topic" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TagsInput" class="form-label">Теги (через запятую)</label>
+                        <input asp-for="TagsInput" class="form-control" placeholder="алгебра, 1 курс, контрольная" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="File" class="form-label">Файл</label>
+                        <input asp-for="File" type="file" class="form-control" />
+                        <div class="form-text text-muted">PDF, DOCX, PPTX, PNG, JPEG. Максимум 20 МБ.</div>
+                        <span asp-validation-for="File" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="IsPremium" class="form-check-input" />
+                        <label class="form-check-label" asp-for="IsPremium">Премиум-материал (платный просмотр)</label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">Загрузить</button>
+                        <a asp-action="My" class="btn btn-outline-light">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

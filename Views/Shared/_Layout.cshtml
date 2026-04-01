@@ -1,0 +1,126 @@
+@inject прпгр.Services.MaterialService MaterialStore
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - KnowledgeHub</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/прпгр.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="body-glow"></div>
+
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark main-navbar mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index" style="gap:10px;">
+                    <div class="d-flex flex-column align-items-center" style="line-height:1;">
+                        <img src="~/images/logo.png" alt="KnowledgeHub" style="height:40px; width:auto; border-radius:50%;" />
+                        <span style="font-weight:600; font-size:14px; margin-top:4px;">KnowledgeHub</span>
+                    </div>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">&#x1F3E0; Главная</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Materials" asp-action="All">&#x1F4DA; Все материалы</a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Materials" asp-action="My">&#x1F4C1; Мои материалы</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Materials" asp-action="Create">&#x1F4E4; Загрузить</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Recommendations" asp-action="Index">&#x2B50; Рекомендации</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Lms" asp-action="Index">&#x1F393; LMS</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Analytics" asp-action="Index">&#x1F4CA; Аналитика</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Transactions">&#x1F4B0; Баллы</a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Moderator") || User.IsInRole("Admin"))
+                        {
+                            var pendingCount = MaterialStore.GetPendingCount() + MaterialStore.GetUnresolvedComplaintsCount();
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Moderation" asp-action="Index">
+                                    &#x1F6E1; Модерация
+                                    @if (pendingCount > 0)
+                                    {
+                                        <span class="badge bg-danger ms-1">@pendingCount</span>
+                                    }
+                                </a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Users">&#x2699; Админ</a>
+                            </li>
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Profile" asp-action="Index">&#x1F464; @User.Identity!.Name</a>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="form-inline">
+                                    <button type="submit" class="btn btn-link nav-link">Выйти</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item me-2">
+                                <a class="btn btn-auth" asp-controller="Account" asp-action="Login">Вход</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-auth-outline" asp-controller="Account" asp-action="Register">Регистрация</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="site-footer mt-5">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center py-3">
+                <span>&copy; 2026 KnowledgeHub &mdash; Платформа обмена учебными материалами</span>
+                <span class="text-muted small">ASP.NET Core MVC</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

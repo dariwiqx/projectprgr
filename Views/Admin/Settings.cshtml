@@ -1,0 +1,57 @@
+@model прпгр.Models.SystemSettings
+
+@{
+    ViewData["Title"] = "Настройки системы";
+}
+
+<h2 class="mb-4">Настройки системы</h2>
+
+@if (TempData["AdminSuccess"] != null)
+{
+    <div class="alert alert-success">@TempData["AdminSuccess"]</div>
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card auth-card">
+            <div class="card-body p-4">
+                <form asp-action="Settings" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Награда за одобренный материал (баллы)</label>
+                        <input type="number" name="UploadApprovedReward" class="form-control" value="@Model.UploadApprovedReward" min="0" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Награда за оценку материала (баллы)</label>
+                        <input type="number" name="RateMaterialReward" class="form-control" value="@Model.RateMaterialReward" min="0" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Дневной лимит оценок</label>
+                        <input type="number" name="DailyRatingLimit" class="form-control" value="@Model.DailyRatingLimit" min="1" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Стоимость просмотра премиум-материала (баллы)</label>
+                        <input type="number" name="PremiumViewCost" class="form-control" value="@Model.PremiumViewCost" min="0" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Штраф за плагиат (баллы)</label>
+                        <input type="number" name="PlagiarismPenalty" class="form-control" value="@Model.PlagiarismPenalty" min="0" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Макс. нарушений до блокировки</label>
+                        <input type="number" name="MaxViolationsBeforeBlock" class="form-control" value="@Model.MaxViolationsBeforeBlock" min="1" />
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                        <a asp-action="Users" class="btn btn-outline-light">Назад</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

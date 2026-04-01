@@ -1,0 +1,40 @@
+﻿@model IEnumerable<прпгр.Models.RewardTransaction>
+
+@{
+    ViewData["Title"] = "Мои баллы";
+}
+
+<h2 class="mb-4">Мои баллы</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Пока нет операций с баллами.</div>
+}
+else
+{
+    <div class="card shadow-sm border-0" style="background-color: #f8f9fa;">
+        <div class="card-body">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 20%;">Дата</th>
+                        <th style="width: 40%;">Тип операции</th>
+                        <th style="width: 10%;">Баллы</th>
+                        <th style="width: 30%;">Материал</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model)
+                    {
+                        <tr>
+                            <td>@t.CreatedAt.ToLocalTime()</td>
+                            <td style="white-space: normal; word-wrap: break-word;">@t.Type</td>
+                            <td class="fw-bold">@t.Points</td>
+                            <td>@t.MaterialId</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

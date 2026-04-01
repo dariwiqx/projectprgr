@@ -1,0 +1,151 @@
+@model IEnumerable<прпгр.Controllers.ModerationItemViewModel>
+
+@{
+    ViewData["Title"] = "Модерация";
+    var filter = ViewBag.Filter as string;
+    var sort = ViewBag.Sort as string;
+}
+
+<h2 class="mb-4">Панель модерации</h2>
+
+@if (TempData["ModerationSuccess"] != null)
+{
+    <div class="alert alert-success">@TempData["ModerationSuccess"]</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="me-2">Фильтр:</span>
+            <a href="@Url.Action("Index")" class="btn btn-sm @(filter == null ? "btn-primary" : "btn-outline-light")">Все требующие внимания</a>
+            <a href="@Url.Action("Index", new { filter = "pending" })" class="btn btn-sm @(filter == "pending" ? "btn-primary" : "btn-outline-light")">На модерации</a>
+            <a href="@Url.Action("Index", new { filter = "complaints" })" class="btn btn-sm @(filter == "complaints" ? "btn-primary" : "btn-outline-light")">С жалобами</a>
+            <a href="@Url.Action("Index", new { filter = "plagiarism" })" class="btn btn-sm @(filter == "plagiarism" ? "btn-primary" : "btn-outline-light")">Подозрение на плагиат</a>
+            <a href="@Url.Action("Index", new { filter = "blocked" })" class="btn btn-sm @(filter == "blocked" ? "btn-primary" : "btn-outline-light")">Заблокированные</a>
+
+            <span class="ms-4 me-2">Сортировка:</span>
+            <a href="@Url.Action("Index", new { filter, sort = "date_desc" })" class="btn btn-sm @(sort == null || sort == "date_desc" ? "btn-primary" : "btn-outline-light")">Новые</a>
+            <a href="@Url.Action("Index", new { filter, sort = "date_asc" })" class="btn btn-sm @(sort == "date_asc" ? "btn-primary" : "btn-outline-light")">Старые</a>
+            <a href="@Url.Action("Index", new { filter, sort = "complaints" })" class="btn btn-sm @(sort == "complaints" ? "btn-primary" : "btn-outline-light")">По жалобам</a>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Нет материалов, требующих внимания.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-dark-custom align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Предмет / Курс</th>
+                    <th>Статус</th>
+                    <th>Жалобы</th>
+                    <th>Плагиат</th>
+                    <th>Дата</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var badgeClass = item.Material.Status switch
+                    {
+                        "Approved" => "bg-success",
+                        "Pending" => "bg-secondary",
+                        "Rejected" => "bg-warning text-dark",
+                        "Blocked" => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+
+                    <tr>
+                        <td>@item.Material.Id</td>
+                        <td>
+                            <a asp-controller="Materials" asp-action="Details" asp-route-id="@item.Material.Id" class="text-decoration-none">
+                                @item.Material.Title
+                            </a>
+                            @if (item.Material.IsPremium)
+                            {
+                                <span class="badge-premium ms-1" style="font-size:0.7rem;">P</span>
+                            }
+                        </td>
+                        <td>@item.Material.Subject / @item.Material.Course</td>
+                        <td><span class="badge @badgeClass">@item.Material.Status</span></td>
+                        <td>
+                            @if (item.ComplaintsCount > 0)
+                            {
+                                <span class="badge bg-danger">@item.ComplaintsCount</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">0</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.IsSuspicious)
+                            {
+                                <span class="badge bg-warning text-dark">Подозрение</span>
+                            }
+                        </td>
+                        <td>@item.Material.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                @if (item.Material.Status == "Pending")
+                                {
+                                    <form asp-action="Approve" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@item.Material.Id" />
+                                        <input type="hidden" name="comment" value="" />
+                                        <button type="submit" class="btn btn-success btn-sm">Одобрить</button>
+                                    </form>
+                                    <form asp-action="Reject" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@item.Material.Id" />
+                                        <input type="hidden" name="comment" value="" />
+                                        <button type="submit" class="btn btn-warning btn-sm">Отклонить</button>
+                                    </form>
+                                }
+                                @if (item.Material.Status != "Blocked")
+                                {
+                                    <form asp-action="Block" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@item.Material.Id" />
+                                        <input type="hidden" name="comment" value="" />
+                                        <button type="submit" class="btn btn-danger btn-sm">Блокировать</button>
+                                    </form>
+                                }
+                                @if (item.IsSuspicious && item.Material.Status != "Blocked")
+                                {
+                                    <form asp-action="ConfirmPlagiarism" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@item.Material.Id" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Плагиат</button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+
+                    @if (item.Complaints.Any())
+                    {
+                        <tr>
+                            <td></td>
+                            <td colspan="7">
+                                <div class="small">
+                                    <strong>Жалобы:</strong>
+                                    <ul class="mb-0 ps-3">
+                                        @foreach (var c in item.Complaints.Where(c => !c.IsResolved).Take(3))
+                                        {
+                                            <li class="text-muted">@c.Reason <small>(@c.CreatedAt.ToString("dd.MM.yyyy HH:mm"))</small></li>
+                                        }
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}
